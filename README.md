@@ -6,6 +6,8 @@
 
 `/contact` - 聯絡相關人員
 
+`/manual` - 使用手冊
+
 ## 搜尋 Telegram Bot 帳號
 在 Telegram 上搜尋 “TESRI Solar Panel Report”
 

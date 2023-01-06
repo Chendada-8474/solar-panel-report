@@ -157,9 +157,15 @@ def contact(update, context):
     )
 
 
+def manual(update, context):
+    user_id = str(update.message.chat.id)
+    bot.send_message(user_id, bot_reply.manual_url())
+
+
 def main():
     updater = Updater(TELEGRAM_TOKEN)
 
+    updater.dispatcher.add_handler(CommandHandler("manual", manual))
     updater.dispatcher.add_handler(CommandHandler("contact", contact))
     updater.dispatcher.add_handler(
         ConversationHandler(

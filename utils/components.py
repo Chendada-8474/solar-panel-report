@@ -88,6 +88,9 @@ class BotReply:
     def permission_deny(self) -> str:
         return "您沒有足夠的權限。"
 
+    def manual_url(self) -> str:
+        return "https://github.com/Chendada-8474/solar-panel-report"
+
     def selected_ponds_img(self, ponds: GeoDataFrame, observer=None):
         ponds["solar_panel_type"] = ponds["solar_panel_type"].astype("string")
         ponds.plot(figsize=(6, 6), column="solar_panel_type", legend=True)
