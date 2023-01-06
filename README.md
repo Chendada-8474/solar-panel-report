@@ -32,12 +32,12 @@
 
 <img src="./img/select_location.PNG" width="300">
 
-## 3. 輸入魚塭編號
+### 3. 輸入魚塭編號
 機器人會依照你的回傳點位，回傳點為附近的魚塭，請輸入想要回報的魚塭編號。
 
 <img src="./img/send_pond_index.PNG" width="300">
 
-## 4. 選擇光電板類型
+### 4. 選擇光電板類型
 請依照你觀察到的類別，按光電板按鈕。按下後你可以選擇送出、繼續回報、或者是取消。
 
 <img src="./img/select_type_and_sent.PNG" width="300">

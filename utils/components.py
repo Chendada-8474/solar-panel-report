@@ -112,23 +112,3 @@ class BotReply:
         plt.savefig(bio)
         bio.seek(0)
         return bio
-
-
-if __name__ == "__main__":
-    from utils.sql_commander import get_ponds_nearby_as_geopandas, _coord_trans
-    from telegram.ext import ExtBot
-
-    # bot = ExtBot("5073744772:AAErv1yd8S9F-L-h-e7zRlkEyT5e9LbrPJg")
-    bt = Bottons()
-    print(bt.panel_types_markup)
-    print(bt.continue_report)
-
-    # y, x = 23.988668, 120.346779
-    # ponds = get_ponds_nearby_as_geopandas(x, y)
-    # ponds.at[0, "solar_panel_type"] = 3
-    # ponds.at[5, "solar_panel_type"] = 3
-    # ponds.at[10, "solar_panel_type"] = 2
-    # ponds.at[11, "solar_panel_type"] = 5
-    # ponds["solar_panel_type"] = ponds["solar_panel_type"].astype("string")
-    # x, y = _coord_trans((x, y))
-    # bot.send_photo("348929573", photo=bot_reply.plot_selected_ponds(ponds, (x, y)))

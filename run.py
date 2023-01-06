@@ -43,6 +43,7 @@ def listen_location(update, context):
     user_id = str(update.message.chat.id)
     x, y = update.message.location.longitude, update.message.location.latitude
     ponds = get_ponds_nearby_as_geopandas(x, y)
+
     if not len(ponds):
         bot.send_message(user_id, bot_reply.no_pond_selected())
         return ConversationHandler.END
@@ -68,7 +69,6 @@ def listen_pond(update, context):
         bot_reply.ask(question="panel_type"),
         reply_markup=bot_button.panel_types_markup,
     )
-
     return LISTEN_PANEL_TYPE
 
 
@@ -125,6 +125,7 @@ def listen_check_location(update, context):
     x, y = update.message.location.longitude, update.message.location.latitude
 
     ponds = get_ponds_nearby_as_geopandas(x, y)
+
     if not len(ponds):
         bot.send_message(user_id, bot_reply.no_pond_checked())
         return ConversationHandler.END

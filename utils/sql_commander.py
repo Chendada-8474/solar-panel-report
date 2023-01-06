@@ -40,6 +40,7 @@ def _geopandarize(sql: str):
 
 
 def get_user_ids(admin=False) -> set:
+
     if admin:
         sql = """
         SELECT telegram_id FROM user WHERE admin = 1;
@@ -81,8 +82,3 @@ def update_panel_type(ponds):
     for fishpond_id, panel_type in zip(ponds["fishpond_id"], ponds["solar_panel_type"]):
         db_session.execute(sql % (fishpond_id, panel_type))
         db_session.commit()
-
-
-if __name__ == "__main__":
-    print(get_solar_panel_types())
-    # print(get_ponds_nearby_as_geopandas(120.147275611372, 23.0510545102663))
