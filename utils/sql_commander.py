@@ -7,9 +7,9 @@ import yaml
 import os
 
 
-dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DIR_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-with open(os.path.join(dir_path, "init.yaml")) as file:
+with open(os.path.join(DIR_PATH, "init.yaml")) as file:
     connection_info = yaml.load(file, Loader=yaml.Loader)
 
 MYSQL_PW = connection_info["mysql"]["password"]
@@ -23,10 +23,10 @@ engine = create_engine(
 db_session = scoped_session(sessionmaker(bind=engine))
 
 
-def _coord_trans(coord: tuple[float, float], input_proj="4326", output_proj="3826"):
+def _coord_trans(x, y, input_proj="4326", output_proj="3826"):
     input_proj, output_proj = "epsg:%s" % input_proj, "epsg:%s" % output_proj
-    coord = Transformer.from_crs(input_proj, output_proj).transform(coord[1], coord[0])
-    return coord[0], coord[1]
+    x, y = Transformer.from_crs(input_proj, output_proj).transform(y, x)
+    return x, y
 
 
 def _geopandarize(sql: str):
@@ -39,10 +39,16 @@ def _geopandarize(sql: str):
     return gpd_dataframe
 
 
-def get_admin_ids() -> set:
-    sql = """
-    SELECT telegram_id FROM user WHERE admin = 1;
-    """
+def get_user_ids(admin=False) -> set:
+    if admin:
+        sql = """
+        SELECT telegram_id FROM user WHERE admin = 1;
+        """
+    else:
+        sql = """
+        SELECT telegram_id FROM user;
+        """
+
     return set(tg_id[0] for tg_id in db_session.execute(sql).fetchall())
 
 
@@ -50,12 +56,12 @@ def get_solar_panel_types():
     sql = """
     SELECT * FROM solar_panel_type;
     """
-    return db_session.execute(sql).fatchall()
+    return db_session.execute(sql).fetchall()
 
 
 def get_ponds_nearby_as_geopandas(x: float, y: float, range=500):
     half_range = 500 // 2
-    x, y = _coord_trans((x, y))
+    x, y = _coord_trans(x, y)
 
     sql = """
     SELECT fishpond_id, solar_panel_type, centroid_x, centroid_y, ST_ASTEXT(geometry) as geometry from fishpond WHERE %s < centroid_x AND centroid_x < %s AND %s < centroid_y AND centroid_y < %s;
@@ -68,5 +74,15 @@ def get_ponds_nearby_as_geopandas(x: float, y: float, range=500):
     return _geopandarize(sql)
 
 
+def update_panel_type(ponds):
+    sql = """
+    UPDATE fishpond SET solar_panel_type = %s WHERE fishpond_id = %s;
+    """
+    for fishpond_id, panel_type in zip(ponds["fishpond_id"], ponds["solar_panel_type"]):
+        db_session.execute(sql % (fishpond_id, panel_type))
+        db_session.commit()
+
+
 if __name__ == "__main__":
-    print(get_ponds_nearby_as_geopandas(120.147275611372, 23.0510545102663))
+    print(get_solar_panel_types())
+    # print(get_ponds_nearby_as_geopandas(120.147275611372, 23.0510545102663))
