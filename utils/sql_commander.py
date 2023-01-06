@@ -60,7 +60,7 @@ def get_solar_panel_types():
 
 
 def get_ponds_nearby_as_geopandas(x: float, y: float, range=500):
-    half_range = 500 // 2
+    half_range = range // 2
     x, y = _coord_trans(x, y)
 
     sql = """
