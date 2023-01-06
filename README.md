@@ -42,5 +42,5 @@
 ## 聯絡管理員
 你可以使用 `/contact` 指令來獲得管理員的聯絡資訊。
 
-<img src="./img/contact.PNG" width="300">
+<img src="./img/contact.jpeg" width="300">
 
