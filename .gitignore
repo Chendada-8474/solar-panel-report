@@ -137,3 +137,4 @@ init.yaml
 sql_query.py
 taiwan-fishpond
 python-venv
+.DS_Store
