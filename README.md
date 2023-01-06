@@ -6,7 +6,8 @@
 /contact - 聯絡相關人員
 
 ## 搜尋 Telegram Bot 帳號
-在 Telegram 上搜尋 “TESRI Solar Panel Report”，或者是直接透過連結找到機器人帳號：t.me/tesri_solar_bot。
+在 Telegram 上搜尋 “TESRI Solar Panel Report”>
+或者是直接透過連結找到機器人帳號：[t.me/tesri_solar_bot](https://t.me/tesri_solar_bot)。
 
 <img src="./img/search_bot.jpeg" width="300">
 
