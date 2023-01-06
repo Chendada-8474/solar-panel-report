@@ -112,7 +112,7 @@ def select_continue(update, context):
 def check(update, context):
     user_id = str(update.message.chat.id)
 
-    if user_id not in ADMINS:
+    if user_id not in USERS_IDS:
         bot.send_message(user_id, bot_reply.permission_deny())
         return ConversationHandler.END
 
