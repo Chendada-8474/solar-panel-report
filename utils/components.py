@@ -11,7 +11,6 @@ plt.switch_backend("Agg")
 
 class Bottons:
     def __init__(self) -> None:
-        self.confirm = {"確認": True, "取消": False}
         self.continue_report_markup = self._bottonrize_selection_talbe(
             (("confirm", "確認"), ("continue", "繼續"), ("cancel", "取消"))
         )
