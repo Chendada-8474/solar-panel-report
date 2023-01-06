@@ -21,7 +21,7 @@
 
 <img src="./img/report_command.jpeg" width="300">
 
-![ask_location](./img/ask_location.jpeg | width=200)
+<img src="./img/ask_location.jpeg" width="300">
 
 ### 2. 傳送點位
 傳送你目前的點位，你也可以移動地圖，選擇其他點位。
