@@ -1,6 +1,5 @@
 # 魚塭太陽能板回報系統使用說明
 
-
 ## 指令列表
 `/report` - 開始回報光電魚塭
 
@@ -11,6 +10,15 @@
 `/manual` - 使用手冊
 
 `/contact` - 聯絡相關人員
+
+`/signup` - 向管理員申請使用權限
+
+`/authorize` - 授權使用者 (admin only)
+
+## 首次使用
+使用前請到 app store 或者是 Google Play 下載 Telegram 應用程式。
+下載後請先在 app 中設定你的姓名，再用 /signup 指令來向管理員申請使用權限。
+
 
 ## 搜尋 Telegram Bot 帳號
 在 Telegram 上搜尋 “TESRI Solar Panel Report” 。

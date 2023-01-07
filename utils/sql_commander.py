@@ -1,8 +1,9 @@
 from pyproj import Transformer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
+from datetime import datetime
 import yaml
 import os
 
@@ -39,17 +40,14 @@ def _geopandarize(sql: str):
     return gpd_dataframe
 
 
-def get_user_ids(admin=False) -> set:
+def get_admins() -> set:
+    sql = "SELECT telegram_id FROM user WHERE admin = 1"
+    return set(tg_id[0] for tg_id in db_session.execute(sql).fetchall())
 
-    if admin:
-        sql = """
-        SELECT telegram_id FROM user WHERE admin = 1;
-        """
-    else:
-        sql = """
-        SELECT telegram_id FROM user;
-        """
 
+def get_users_by_auth(authorized=True) -> set:
+    authorized = 1 if authorized else 0
+    sql = "SELECT telegram_id FROM user WHERE authorized = %s" % authorized
     return set(tg_id[0] for tg_id in db_session.execute(sql).fetchall())
 
 
@@ -75,14 +73,57 @@ def get_ponds_nearby_as_geopandas(x: float, y: float, range=500):
     return _geopandarize(sql)
 
 
-def update_panel_type(ponds):
-    sql = """
+def update_panel_type(updates: dict):
+    sql_update = """
     UPDATE fishpond SET solar_panel_type = %s WHERE fishpond_id = %s;
     """
-    for fishpond_id, panel_type in zip(ponds["fishpond_id"], ponds["solar_panel_type"]):
-        db_session.execute(sql % (fishpond_id, panel_type))
+    for fishpond_id, panel_type in updates.items():
+        db_session.execute(sql_update % (panel_type, fishpond_id))
         db_session.commit()
 
 
+def insert_log(updates: dict, user_id):
+    sql = """
+    INSERT INTO report_log (fishpond_id, reporter, solar_panel_type_id, report_datetime) VALUE (%s, "%s", %s, "%s");
+    """
+    for fishpond_id, panel_type in updates.items():
+        db_session.execute(
+            sql
+            % (
+                fishpond_id,
+                user_id,
+                panel_type,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            )
+        )
+        db_session.commit()
+
+
+def insert_user(user_id: str, org=None, first_name=None, last_name=None):
+    if not all([org, first_name, last_name]):
+        raise "org, first_name and last_name are all requried"
+    sql = """
+    INSERT INTO user (telegram_id, user_name, org) VALUE (%s, %s, %s)
+    """
+    user_name = "%s %s" % (first_name, last_name)
+    db_session.execute(sql % (user_id, user_name, org))
+    db_session.commit()
+
+
+def get_unauth_info():
+    sql = """
+    SELECT Telegram_id, user_name, org FROM user WHERE authorized = 0;
+    """
+    return db_session.execute(sql).fetchall()
+
+
+def authorize_user(applier_id):
+    sql = """
+    UPDATE user SET authorized = 1 WHERE telegram_id = %s;
+    """
+    db_session.execute(sql % applier_id)
+    db_session.commit()
+
+
 if __name__ == "__main__":
-    print(get_solar_panel_types())
+    print(get_users_by_auth(authorized=True))
