@@ -6,12 +6,14 @@
 
 `/check` - 查看魚塭光電
 
-`/contact` - 聯絡相關人員
+`/type` - 光電板類型說明
 
 `/manual` - 使用手冊
 
+`/contact` - 聯絡相關人員
+
 ## 搜尋 Telegram Bot 帳號
-在 Telegram 上搜尋 “TESRI Solar Panel Report”
+在 Telegram 上搜尋 “TESRI Solar Panel Report” 。
 
 或者是直接透過連結找到機器人帳號：[t.me/tesri_solar_bot](https://t.me/tesri_solar_bot)。
 
@@ -42,6 +44,22 @@
 
 <img src="./img/select_type_and_sent.PNG" width="300">
 
+
+## 光電板類型說明
+光電板回報類型分成 4 種，分別為：無、打樁、地面型、水面型 (如果是堤岸型的光電板不用回報。)。
+
+1. 無：尚未回報或未設置光電區域。
+
+2. 打樁：地面型光電尚未裝置光電板，僅只有柱子。
+
+![only_pole](./img/only_pole_solar.jpg)
+
+3. 地面型：已裝置光電板之地面型光電(只要有一塊就算)。
+
+![gound](./img/gound_solar.jpg)
+
+4. 水面型：已裝置光電板之水面型光電。
+![float](./img/float_solar.jpg)
 
 ## 聯絡管理員
 你可以使用 `/contact` 指令來獲得管理員的聯絡資訊。

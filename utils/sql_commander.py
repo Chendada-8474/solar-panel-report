@@ -82,3 +82,7 @@ def update_panel_type(ponds):
     for fishpond_id, panel_type in zip(ponds["fishpond_id"], ponds["solar_panel_type"]):
         db_session.execute(sql % (fishpond_id, panel_type))
         db_session.commit()
+
+
+if __name__ == "__main__":
+    print(get_solar_panel_types())

@@ -10,6 +10,7 @@ from telegram.ext import (
 from utils.components import BotReply, Bottons
 from utils.sql_commander import (
     get_user_ids,
+    get_solar_panel_types,
     get_ponds_nearby_as_geopandas,
     update_panel_type,
     _coord_trans,
@@ -51,7 +52,10 @@ def listen_location(update, context):
     x, y = _coord_trans(x, y)
     geodf_memory[user_id] = {"ponds": ponds, "location": (x, y)}
     bot.send_photo(user_id, photo=bot_reply.selected_ponds_img(ponds, (x, y)))
-    bot.send_message(user_id, bot_reply.ask(question="pond_index"))
+    bot.send_message(
+        user_id,
+        "%s\n%s" % (bot_reply.ask(question="pond_index"), bot_reply.current_location()),
+    )
     return LISTEN_POND
 
 

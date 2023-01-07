@@ -1,5 +1,6 @@
 from io import BytesIO
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from utils.sql_commander import get_solar_panel_types
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from geopandas import GeoDataFrame
@@ -58,6 +59,22 @@ class BotReply:
         self.chendada = AdminInfo(
             title="系統開發：陳達智", phone_number="+886912957551", first_name="Ta-chih"
         )
+        self._COLORS = (
+            "lightskyblue",
+            "royalblue",
+            "wheat",
+            "limegreen",
+            "lightgray",
+            "violet",
+        )
+        self.color_dict = {}
+        self.color_dict_from(get_solar_panel_types())
+
+    def color_dict_from(self, sql_result):
+        color_dict = {}
+        for i, p in enumerate(sql_result):
+            color_dict[p[0]] = self._COLORS[i]
+        self.color_dict = color_dict
 
     def ask(self, question=None) -> str:
         if not question:
@@ -71,6 +88,9 @@ class BotReply:
         elif question == "end_select":
             text = "要結束回報送出了嗎？\n確認：送出變更\n繼續：繼續回報\n取消：不送出取消這次回報"
         return text
+
+    def current_location(self) -> str:
+        return "紅點是你目前的位置"
 
     def update_done(self) -> str:
         return "已成功回報！"
@@ -92,12 +112,15 @@ class BotReply:
 
     def selected_ponds_img(self, ponds: GeoDataFrame, observer=None):
         ponds["solar_panel_type"] = ponds["solar_panel_type"].astype("string")
-        ponds.plot(figsize=(6, 6), column="solar_panel_type", legend=True)
+        ponds.plot(
+            figsize=(6, 6),
+            column="solar_panel_type",
+            legend=True,
+            cmap=colors.ListedColormap(list(self.color_dict.values())),
+        )
 
         if observer:
-            plt.plot(
-                [observer[0]], [observer[1]], marker="o", markersize=10, color="red"
-            )
+            plt.plot(observer[0], observer[1], marker="o", markersize=10, color="red")
 
         for i, row in ponds.iterrows():
             plt.annotate(
@@ -112,3 +135,13 @@ class BotReply:
         plt.savefig(bio)
         bio.seek(0)
         return bio
+
+
+if __name__ == "__main__":
+    from sql_commander import get_ponds_nearby_as_geopandas
+
+    y, x = 23.740711, 120.198713
+    ponds = get_ponds_nearby_as_geopandas(x, y)
+    ponds.at[3, "solar_panel_type"] = 4
+    br = BotReply()
+    br.selected_ponds_img(ponds)
