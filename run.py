@@ -167,9 +167,15 @@ def manual(update, context):
     bot.send_message(user_id, bot_reply.manual_url())
 
 
+def panel_type(update, context):
+    user_id = str(update.message.chat.id)
+    bot.send_message(user_id, bot_reply.panel_type())
+
+
 def main():
     updater = Updater(TELEGRAM_TOKEN)
 
+    updater.dispatcher.add_handler(CommandHandler("type", panel_type))
     updater.dispatcher.add_handler(CommandHandler("manual", manual))
     updater.dispatcher.add_handler(CommandHandler("contact", contact))
     updater.dispatcher.add_handler(

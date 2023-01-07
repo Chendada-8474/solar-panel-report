@@ -60,11 +60,11 @@ class BotReply:
             title="系統開發：陳達智", phone_number="+886912957551", first_name="Ta-chih"
         )
         self._COLORS = (
+            "lightgray",
+            "wheat",
             "lightskyblue",
             "royalblue",
-            "wheat",
             "limegreen",
-            "lightgray",
             "violet",
         )
         self.color_dict = {}
@@ -82,11 +82,11 @@ class BotReply:
         if question == "location":
             text = "請傳送目前的點位"
         elif question == "pond_index":
-            text = "請選擇圖中魚塭的編號"
+            text = "請選擇圖中魚塭的編號 (僅需填寫有光電的魚塭編號)"
         elif question == "panel_type":
             text = "請選擇光電板的類型"
         elif question == "end_select":
-            text = "要結束回報送出了嗎？\n確認：送出變更\n繼續：繼續回報\n取消：不送出取消這次回報"
+            text = "要結束回報送出了嗎？\n(要按確認或者是取消，本次回報才算結束。)\n確認：送出變更\n繼續：繼續回報\n取消：不送出取消這次回報"
         return text
 
     def current_location(self) -> str:
@@ -109,6 +109,15 @@ class BotReply:
 
     def manual_url(self) -> str:
         return "https://github.com/Chendada-8474/solar-panel-report"
+
+    def panel_type(self) -> str:
+        text = """
+        1. 無：未設置光電區域，如果填錯了可以用這個選項來返回。\n
+        2. 打樁：地面型光電尚僅只有柱子，未裝置光電板。若只有整地不算在此類，至少需要有一根柱子\n
+        3. 地面型：已裝置光電板之地面型光電(只要有一塊就算)\n
+        4. 水面型：已裝置光電板之水面型光電。
+        """
+        return
 
     def selected_ponds_img(self, ponds: GeoDataFrame, observer=None):
         ponds["solar_panel_type"] = ponds["solar_panel_type"].astype("string")
