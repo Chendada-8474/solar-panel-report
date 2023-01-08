@@ -24,7 +24,7 @@ from utils.sql_commander import (
     authorize_user,
     connection_info,
 )
-from utils.tools import GeoMemory, split_pond_indexes
+from utils.tools import *
 
 ADMINS = get_admins()
 SUPER_ADMIN = get_super_admin()
@@ -35,6 +35,7 @@ bot_reply = BotReply()
 bot_button = Bottons()
 geodf_memory = GeoMemory()
 apply_memory = {}
+announcement = {}
 
 LISTEN_LOCATION, LISTEN_POND, LISTEN_PANEL_TYPE, SELECT_CONTINUE = range(4)
 LISTEN_CEHCK_LOCATION = 0
@@ -340,8 +341,7 @@ def confirm_announce(update, context):
 
     if callback == "send":
         bot.send_message(user_id, bot_reply.say(say_what="announce_sent"))
-        for u in authed_useres:
-            bot.send_message(u, "%s\nby: %s" % (announcement, announcer_name))
+        send_message_skip_no_found_chat(authed_useres, announcement)
     elif callback == "cancel":
         bot.send_message(user_id, bot_reply.say(say_what="announce_cancel"))
 
@@ -356,13 +356,6 @@ def manual(update, context):
 def panel_type(update, context):
     user_id = str(update.message.chat.id)
     bot.send_message(user_id, bot_reply.say(say_what="panel_type"))
-
-
-def error_callback(update, context):
-    try:
-        raise context.error
-    except TelegramError:
-        bot.send_message(SUPER_ADMIN, context.error)
 
 
 def main():
@@ -422,13 +415,11 @@ def main():
                 LISTEN_ANNOUNCE_CONTENT: [
                     MessageHandler(Filters.text, listen_announce_contect)
                 ],
-                CONFIRM_ANNOUNCE: [CallbackQueryHandler(approve)],
+                CONFIRM_ANNOUNCE: [CallbackQueryHandler(confirm_announce)],
             },
             [ConversationHandler.END],
         )
     )
-
-    updater.dispatcher.add_error_handler(error_callback)
 
     updater.start_polling(timeout=600)
     updater.idle()

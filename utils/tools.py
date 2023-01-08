@@ -1,3 +1,6 @@
+from run import bot
+
+
 class GeoMemory:
     def __init__(self):
         self.memory = {}
@@ -52,6 +55,14 @@ def split_pond_indexes(ponds_indexes: str) -> list:
             indexes.append(int("".join(tmp)))
             tmp = []
     return indexes
+
+
+def send_message_skip_no_found_chat(user_id: list, announcement: str):
+    for i in user_id:
+        try:
+            bot.send_message(i, announcement)
+        except:
+            print("chat %s not found when announcing")
 
 
 if __name__ == "__main__":
