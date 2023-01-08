@@ -33,9 +33,9 @@
 ### 1. 輸入指令
 請先輸入 `/report` ，或點選左下角的 menu 選單，點選 `/report` 指令。
 
-<img src="./img/report_command.jpeg" width="300">
+<img src="./img/report_command.PNG" width="300">
 
-<img src="./img/ask_location.jpeg" width="300">
+<img src="./img/ask_location.PNG" width="300">
 
 ### 2. 傳送點位
 傳送你目前的點位，你也可以移動地圖，選擇其他點位。
