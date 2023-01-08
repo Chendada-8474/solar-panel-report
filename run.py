@@ -74,7 +74,6 @@ def listen_location(update, context):
     geodf_memory.init_updates(user_id)
     geodf_memory.add(user_id, ponds, key="ponds")
     geodf_memory.add(user_id, (x, y), key="location")
-    bot.send_photo(user_id, photo=bot_reply.selected_ponds_img(ponds, (x, y)))
     bot.send_message(
         user_id,
         "%s\n%s"
@@ -83,6 +82,7 @@ def listen_location(update, context):
             bot_reply.say(say_what="current_location"),
         ),
     )
+    bot.send_photo(user_id, photo=bot_reply.selected_ponds_img(ponds, (x, y)))
     return LISTEN_POND
 
 
