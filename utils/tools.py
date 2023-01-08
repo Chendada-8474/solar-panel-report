@@ -1,4 +1,8 @@
-from run import bot
+from utils.sql_commander import connection_info
+from telegram.ext import ExtBot
+
+TELEGRAM_TOKEN = connection_info["telegram"]["token"]
+bot = ExtBot(TELEGRAM_TOKEN)
 
 
 class GeoMemory:
