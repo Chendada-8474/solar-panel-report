@@ -263,6 +263,7 @@ def authorize(update, context):
 
 
 def approve(update, context):
+    global USERS_IDS
     user_id = str(update.message.chat.id)
     approve_reply = str(update.message.text)
     applier_id = approve_reply.split(" ")[-1]
