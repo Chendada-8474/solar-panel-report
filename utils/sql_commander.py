@@ -103,7 +103,7 @@ def insert_user(user_id: str, org=None, first_name=None, last_name=None):
     if not all([org, first_name, last_name]):
         raise "org, first_name and last_name are all requried"
     sql = """
-    INSERT INTO user (telegram_id, user_name, org) VALUE (%s, %s, %s)
+    INSERT INTO user (telegram_id, user_name, org) VALUE ('%s', '%s', '%s')
     """
     user_name = "%s %s" % (first_name, last_name)
     db_session.execute(sql % (user_id, user_name, org))
