@@ -71,7 +71,7 @@ def listen_pond(update, context):
     user_id = str(update.message.chat.id)
     pond_index = str(update.message.text)
 
-    if not pond_index.isdigit() and int(pond_index) >= len(geodf_memory[user_id]):
+    if not pond_index.isdigit() or int(pond_index) >= len(geodf_memory[user_id]):
         bot.send_message(user_id, bot_reply.no_pond_selected())
         return
 
