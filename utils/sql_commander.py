@@ -125,5 +125,19 @@ def authorize_user(applier_id):
     db_session.commit()
 
 
+def get_super_admin():
+    sql = """
+    SELECT Telegram_id FROM user WHERE user_id = 1;
+    """
+    return db_session.execute(sql).fetchone()[0]
+
+
+def get_user_name(user_id):
+    sql = """
+    SELECT user_name FROM user WHERE telegram_id = %s
+    """
+    return db_session.execute(sql % user_id).fetchone()[0]
+
+
 if __name__ == "__main__":
-    print(get_users_by_auth(authorized=True))
+    print(get_super_admin())

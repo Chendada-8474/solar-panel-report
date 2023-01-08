@@ -8,10 +8,13 @@ from telegram.ext import (
     MessageHandler,
 )
 from telegram import ReplyKeyboardRemove
+from telegram.error import TelegramError
 from utils.components import BotReply, Bottons
 from utils.sql_commander import (
     get_admins,
+    get_super_admin,
     get_users_by_auth,
+    get_user_name,
     get_ponds_nearby_as_geopandas,
     update_panel_type,
     insert_log,
@@ -21,27 +24,30 @@ from utils.sql_commander import (
     authorize_user,
     connection_info,
 )
+from utils.tools import GeoMemory, split_pond_indexes
 
 ADMINS = get_admins()
+SUPER_ADMIN = get_super_admin()
 TELEGRAM_TOKEN = connection_info["telegram"]["token"]
 bot = ExtBot(TELEGRAM_TOKEN)
 authed_useres = get_users_by_auth(authorized=True)
 bot_reply = BotReply()
 bot_button = Bottons()
-geodf_memory = {}
+geodf_memory = GeoMemory()
 apply_memory = {}
 
 LISTEN_LOCATION, LISTEN_POND, LISTEN_PANEL_TYPE, SELECT_CONTINUE = range(4)
 LISTEN_CEHCK_LOCATION = 0
 LISTEN_ORG, LISTEN_SIGNUP_CONFIRM = range(2)
 APPROVE = 0
+LISTEN_ANNOUNCE_CONTENT, CONFIRM_ANNOUNCE = range(2)
 
 
 def report(update, context):
     user_id = str(update.message.chat.id)
 
     if user_id not in authed_useres:
-        bot.send_message(user_id, bot_reply.permission_deny())
+        bot.send_message(user_id, bot_reply.say(say_what="permission_deny"))
         return ConversationHandler.END
 
     bot.send_message(user_id, bot_reply.ask(question="location"))
@@ -54,30 +60,38 @@ def listen_location(update, context):
     ponds = get_ponds_nearby_as_geopandas(x, y)
 
     if not len(ponds):
-        bot.send_message(user_id, bot_reply.no_pond_selected())
+        bot.send_message(user_id, bot_reply.say(say_what="no_pond_selected"))
         return ConversationHandler.END
 
     x, y = _coord_trans(x, y)
-    geodf_memory[user_id] = {"ponds": ponds, "location": (x, y), "updates": {}}
+
+    geodf_memory.init_user(user_id)
+    geodf_memory.init_updates(user_id)
+    geodf_memory.add(user_id, ponds, key="ponds")
+    geodf_memory.add(user_id, (x, y), key="location")
     bot.send_photo(user_id, photo=bot_reply.selected_ponds_img(ponds, (x, y)))
     bot.send_message(
         user_id,
-        "%s\n%s" % (bot_reply.ask(question="pond_index"), bot_reply.current_location()),
+        "%s\n%s"
+        % (
+            bot_reply.ask(question="pond_index"),
+            bot_reply.say(say_what="current_location"),
+        ),
     )
     return LISTEN_POND
 
 
 def listen_pond(update, context):
     user_id = str(update.message.chat.id)
-    pond_index = str(update.message.text)
+    pond_indexes = split_pond_indexes(str(update.message.text))
+    num_ponds = len(geodf_memory.get(user_id, "ponds"))
 
-    if not pond_index.isdigit() or int(pond_index) >= len(
-        geodf_memory[user_id]["ponds"]
-    ):
-        bot.send_message(user_id, "魚塭編號怪怪的喔")
+    if not pond_indexes or any(i >= num_ponds for i in pond_indexes):
+        bot.send_message(user_id, bot_reply.say(say_what="weird_pond_index"))
         return
 
-    geodf_memory[user_id]["current_pond"] = int(pond_index)
+    geodf_memory.add(user_id, pond_indexes, key="modified_ponds")
+
     bot.send_message(
         user_id,
         bot_reply.ask(question="panel_type"),
@@ -89,13 +103,13 @@ def listen_pond(update, context):
 def listen_panel_type(update, context):
     user_id = str(update.callback_query.message.chat.id)
     callback = update.callback_query.data
-    pond_index = geodf_memory[user_id]["current_pond"]
-    fishpond_id = geodf_memory[user_id]["ponds"].iloc[pond_index]["fishpond_id"]
-    geodf_memory[user_id]["updates"][fishpond_id] = callback
-    geodf_memory[user_id]["ponds"].at[pond_index, "solar_panel_type"] = callback
+    pond_indexes = geodf_memory.get(user_id, key="modified_ponds")
 
-    ponds = geodf_memory[user_id]["ponds"]
-    location = geodf_memory[user_id]["location"]
+    geodf_memory.add_updates(user_id, pond_indexes, callback)
+    geodf_memory.update_mem_panel_type(user_id, pond_indexes, callback)
+
+    ponds = geodf_memory.get(user_id, key="ponds")
+    location = geodf_memory.get(user_id, key="location")
     bot.send_photo(user_id, photo=bot_reply.selected_ponds_img(ponds, location))
 
     bot.send_message(
@@ -111,9 +125,10 @@ def select_continue(update, context):
     callback = update.callback_query.data
 
     if callback == "confirm":
-        update_panel_type(geodf_memory[user_id]["updates"])
-        insert_log(geodf_memory[user_id]["updates"], user_id)
-        bot.send_message(user_id, bot_reply.update_done())
+        updates = geodf_memory.get_updates(user_id)
+        update_panel_type(updates)
+        insert_log(updates, user_id)
+        bot.send_message(user_id, bot_reply.say(say_what="update_done"))
         return ConversationHandler.END
 
     elif callback == "continue":
@@ -121,7 +136,7 @@ def select_continue(update, context):
         return LISTEN_POND
 
     elif callback == "cancel":
-        bot.send_message(user_id, bot_reply.report_cancel())
+        bot.send_message(user_id, bot_reply.say(say_what="report_cancel"))
         return ConversationHandler.END
 
 
@@ -129,7 +144,7 @@ def check(update, context):
     user_id = str(update.message.chat.id)
 
     if user_id not in authed_useres:
-        bot.send_message(user_id, bot_reply.permission_deny())
+        bot.send_message(user_id, bot_reply.say(say_what="permission_deny"))
         return ConversationHandler.END
 
     bot.send_message(user_id, bot_reply.ask(question="location"))
@@ -143,11 +158,10 @@ def listen_check_location(update, context):
     ponds = get_ponds_nearby_as_geopandas(x, y)
 
     if not len(ponds):
-        bot.send_message(user_id, bot_reply.no_pond_checked())
+        bot.send_message(user_id, bot_reply.say(say_what="no_pond_checked"))
         return ConversationHandler.END
 
     x, y = _coord_trans(x, y)
-    geodf_memory[user_id] = {"ponds": ponds, "location": (x, y)}
     bot.send_photo(user_id, photo=bot_reply.selected_ponds_img(ponds, (x, y)))
     return ConversationHandler.END
 
@@ -181,7 +195,7 @@ def signup(update, context):
     unauth_user_ids = get_users_by_auth(authorized=False)
 
     if not first_name and not last_name:
-        bot.send_message(user_id, bot_reply.set_name_first())
+        bot.send_message(user_id, bot_reply.say(say_what="set_name_first"))
         return ConversationHandler.END
 
     if user_id in ADMINS:
@@ -229,15 +243,15 @@ def listen_signup_confirm(update, context):
             first_name=first_name,
             last_name=last_name,
         )
-        bot.send_message(user_id, bot_reply.signup_sent())
+        bot.send_message(user_id, bot_reply.say(say_what="signup_sent"))
 
         for admin in ADMINS:
             bot.send_message(
-                admin, bot_reply.someone_signup(last_name, apply_memory[user_id])
+                admin, bot_reply.someone_signup(first_name, apply_memory[user_id])
             )
 
     elif callback == "cancel":
-        bot.send_message(user_id, bot_reply.signup_cancel())
+        bot.send_message(user_id, bot_reply.say(say_what="signup_cancel"))
 
     apply_memory.pop(user_id)
     return ConversationHandler.END
@@ -246,16 +260,17 @@ def listen_signup_confirm(update, context):
 def authorize(update, context):
     user_id = str(update.message.chat.id)
     if user_id not in ADMINS:
-        bot.send_message(user_id, bot_reply.permission_deny())
+        bot.send_message(user_id, bot_reply.say(say_what="permission_deny"))
         return ConversationHandler.END
 
     unauth_user_ids = get_users_by_auth(authorized=False)
 
     if not unauth_user_ids:
-        bot.send_message(user_id, bot_reply.no_applier())
+        bot.send_message(user_id, bot_reply.say(say_what="no_applier"))
         return ConversationHandler.END
 
     unauth_users = get_unauth_info()
+    bot.send_message(user_id, bot_reply.say(say_what="auth_cancel"))
     bot.send_message(
         user_id,
         bot_reply.ask(question="applier"),
@@ -268,6 +283,11 @@ def approve(update, context):
     global authed_useres
     user_id = str(update.message.chat.id)
     approve_reply = str(update.message.text)
+
+    if approve_reply == "cancel":
+        bot.send_message(user_id, bot_reply.say(say_what="cancel"))
+        return ConversationHandler.END
+
     applier_id = approve_reply.split(" ")[-1]
     bot.send_message(
         user_id,
@@ -278,25 +298,71 @@ def approve(update, context):
     unauth_user_ids = get_users_by_auth(authorized=False)
 
     if not applier_id.isdigit() or applier_id not in unauth_user_ids:
-        bot.send_message(user_id, bot_reply.wrong_id())
+        bot.send_message(user_id, bot_reply.say(say_what="wrong_id"))
         return ConversationHandler.END
 
     authorize_user(applier_id)
-    bot.send_message(user_id, bot_reply.approved_applier())
-    bot.send_message(applier_id, bot_reply.to_applier_passed())
+    bot.send_message(user_id, bot_reply.say(say_what="approved_applier"))
+    bot.send_message(applier_id, bot_reply.say(say_what="to_applier_passed"))
     authed_useres = get_users_by_auth(authorized=True)
+
+    return ConversationHandler.END
+
+
+def announce(update, context):
+    user_id = str(update.message.chat.id)
+
+    if user_id not in ADMINS:
+        bot.send_message(user_id, bot_reply.say(say_what="permission_deny"))
+        return ConversationHandler.END
+
+    bot.send_message(user_id, bot_reply.ask(question="announce_content"))
+    return LISTEN_ANNOUNCE_CONTENT
+
+
+def listen_announce_contect(update, context):
+    global announcement
+    user_id = str(update.message.chat.id)
+    announcement = str(update.message.text)
+
+    bot.send_message(
+        user_id,
+        bot_reply.ask(question="send_announce"),
+        reply_markup=bot_button.announce_markup,
+    )
+    return CONFIRM_ANNOUNCE
+
+
+def confirm_announce(update, context):
+    user_id = str(update.callback_query.message.chat.id)
+    callback = update.callback_query.data
+    announcer_name = get_user_name(user_id)
+
+    if callback == "send":
+        bot.send_message(user_id, bot_reply.say(say_what="announce_sent"))
+        for u in authed_useres:
+            bot.send_message(u, "%s\nby: %s" % (announcement, announcer_name))
+    elif callback == "cancel":
+        bot.send_message(user_id, bot_reply.say(say_what="announce_cancel"))
 
     return ConversationHandler.END
 
 
 def manual(update, context):
     user_id = str(update.message.chat.id)
-    bot.send_message(user_id, bot_reply.manual_url())
+    bot.send_message(user_id, bot_reply.say(say_what="manual_url"))
 
 
 def panel_type(update, context):
     user_id = str(update.message.chat.id)
-    bot.send_message(user_id, bot_reply.panel_type())
+    bot.send_message(user_id, bot_reply.say(say_what="panel_type"))
+
+
+def error_callback(update, context):
+    try:
+        raise context.error
+    except TelegramError:
+        bot.send_message(SUPER_ADMIN, context.error)
 
 
 def main():
@@ -348,6 +414,21 @@ def main():
             [ConversationHandler.END],
         )
     )
+
+    updater.dispatcher.add_handler(
+        ConversationHandler(
+            [CommandHandler("announce", announce)],
+            {
+                LISTEN_ANNOUNCE_CONTENT: [
+                    MessageHandler(Filters.text, listen_announce_contect)
+                ],
+                CONFIRM_ANNOUNCE: [CallbackQueryHandler(approve)],
+            },
+            [ConversationHandler.END],
+        )
+    )
+
+    updater.dispatcher.add_error_handler(error_callback)
 
     updater.start_polling(timeout=600)
     updater.idle()

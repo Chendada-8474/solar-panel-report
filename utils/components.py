@@ -24,6 +24,9 @@ class Bottons:
         self.signup_markup = self._bottonrize_selection_talbe(
             (("signup", "確認送出"), ("cancel", "取消申請"))
         )
+        self.announce_markup = self._bottonrize_selection_talbe(
+            (("send", "確認公告"), ("cancel", "取消公告"))
+        )
 
     def unauth_appliers(self, sql_result):
         return ReplyKeyboardMarkup(
@@ -79,87 +82,57 @@ class BotReply:
             "limegreen",
             "violet",
         )
-        self.color_dict = {}
-        # self.color_dict_from(get_solar_panel_types())
 
-    # def color_dict_from(self, sql_result):
-    #     color_dict = {}
-    #     for i, p in enumerate(sql_result):
-    #         color_dict[str(p[0])] = self._COLORS[i]
-    #     self.color_dict = color_dict
+        self.question_dict = {
+            "location": "請傳送目前的點位。",
+            "pond_index": "請選擇圖中魚塭的編號\n(僅需填寫有光電的魚塭編號)",
+            "panel_type": "請選擇光電板的類型",
+            "end_select": "要結束回報送出了嗎？\n(要按確認或者是取消，本次回報才算結束。)\n確認：送出變更\n繼續：繼續回報\n取消：不送出取消這次回報",
+            "orgnization": "請問你的服務單位？",
+            "signup": "確認送出申請？",
+            "announce_content": "請輸入想公告的內容：",
+            "send_announce": "確認要送出公告？\n系統會自動加上署名喔 ^_<",
+        }
+
+        self.say_what_dict = {
+            "cancel": "已取消。",
+            "current_location": "紅點是你目前的位置。",
+            "update_done": "已成功回報！",
+            "report_cancel": "本次回報已取消。",
+            "signup_cancel": "申請已取消。",
+            "no_pond_selected": "沒有選取到任何魚塭，請用 /report 再試一次。",
+            "no_pond_checked": "沒有選取到任何魚塭。",
+            "permission_deny": "您沒有足夠的權限。",
+            "signup_sent": "你的申請已送出，請待管理員審核。",
+            "no_applier": "沒有待審核的使用者喔。",
+            "wrong_id": "請輸入正確的使用者ID，或者是這個使用者已經審核過了。",
+            "to_applier_passed": "你的申請已經通過了，可以開始使用回報系統了\n回報前請先詳細閱讀使用說明\n用 /manual 來查看使用說明。",
+            "approved_applier": "授權成功！",
+            "manual_url": "https://github.com/Chendada-8474/solar-panel-report",
+            "panel_type": "1. 無：未設置光電區域，如果填錯了可以用這個選項來返回。\n2. 打樁：地面型光電尚僅只有柱子，未裝置光電板。若只有整地不算在此類，至少需要有一根柱子\n3. 地面型：已裝置光電板之地面型光電(只要有一塊就算)\n4. 水面型：已裝置光電板之水面型光電。",
+            "set_name_first": "請先設定 Telegram 帳號的姓名。",
+            "approved_applier": "授權成功！",
+            "weird_pond_index": "魚塭編號怪怪的喔。",
+            "announce_sent": "已公告，公告內容：",
+            "announce_cancel": "已取消公告。",
+            "auth_cancel": "你可以輸入 'cancel' 來取消授權。",
+        }
 
     def ask(self, question=None) -> str:
         if not question:
-            raise "question is needed"
-        if question == "location":
-            text = "請傳送目前的點位"
-        elif question == "pond_index":
-            text = "請選擇圖中魚塭的編號\n(僅需填寫有光電的魚塭編號)"
-        elif question == "panel_type":
-            text = "請選擇光電板的類型"
-        elif question == "end_select":
-            text = "要結束回報送出了嗎？\n(要按確認或者是取消，本次回報才算結束。)\n確認：送出變更\n繼續：繼續回報\n取消：不送出取消這次回報"
-        elif question == "orgnization":
-            text = "請問你的服務單位？"
-        elif question == "signup":
-            text = "確認送出申請？"
-        elif question == "applier":
-            text = "請選擇你要授權的使用者。"
-        return text
+            raise Exception("question is needed")
+        return self.question_dict[question]
 
-    def current_location(self) -> str:
-        return "紅點是你目前的位置。"
-
-    def update_done(self) -> str:
-        return "已成功回報！"
-
-    def report_cancel(self) -> str:
-        return "本次回報已取消。"
-
-    def signup_cancel(self) -> str:
-        return "申請已取消。"
-
-    def no_pond_selected(self) -> str:
-        return "沒有選取到任何魚塭，請用 /report 再試一次。"
-
-    def no_pond_checked(self) -> str:
-        return "沒有選取到任何魚塭。"
-
-    def permission_deny(self) -> str:
-        return "您沒有足夠的權限。"
-
-    def signup_sent(self) -> str:
-        return "你的申請已送出，請待管理員審核。"
-
-    def no_applier(self) -> str:
-        return "沒有待審核的使用者喔。"
-
-    def seleted_applier(self, applier_id) -> str:
-        return "你選擇了%s" % applier_id
-
-    def wrong_id(self) -> str:
-        return "請輸入正確的使用者ID，或者是這個使用者已經審核過了。"
+    def say(self, say_what=None) -> str:
+        if not say_what:
+            raise Exception("say_what is needed")
+        return self.say_what_dict[say_what]
 
     def someone_signup(self, applier, org) -> str:
         return "%s(%s)剛剛送出了申請，請用 /authorize 來授權使用者。" % (applier, org)
 
-    def to_applier_passed(self):
-        return "你的申請已經通過了，可以開始使用回報系統了\n回報前請先詳細閱讀使用說明\n用 /manual 來查看使用說明。"
-
-    def approved_applier(self):
-        return "授權成功"
-
-    def manual_url(self) -> str:
-        return "https://github.com/Chendada-8474/solar-panel-report"
-
-    def panel_type(self) -> str:
-        text = """
-        1. 無：未設置光電區域，如果填錯了可以用這個選項來返回。\n2. 打樁：地面型光電尚僅只有柱子，未裝置光電板。若只有整地不算在此類，至少需要有一根柱子\n3. 地面型：已裝置光電板之地面型光電(只要有一塊就算)\n4. 水面型：已裝置光電板之水面型光電。
-        """
-        return text
-
-    def set_name_first(self):
-        return "請先設定 Telegram 帳號的姓名。"
+    def seleted_applier(self, applier_id) -> str:
+        return "你選擇了%s" % applier_id
 
     def auth_already(self, status="user"):
         text = None
