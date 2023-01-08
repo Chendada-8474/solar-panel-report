@@ -281,6 +281,7 @@ def approve(update, context):
     authorize_user(applier_id)
     bot.send_message(user_id, bot_reply.approved_applier())
     bot.send_message(applier_id, bot_reply.to_applier_passed())
+    USERS_IDS = get_users_by_auth(authorized=True)
 
     return ConversationHandler.END
 
