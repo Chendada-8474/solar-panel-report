@@ -23,9 +23,9 @@ from utils.sql_commander import (
 )
 
 ADMINS = get_admins()
-USERS_IDS = get_users_by_auth(authorized=True)
 TELEGRAM_TOKEN = connection_info["telegram"]["token"]
 bot = ExtBot(TELEGRAM_TOKEN)
+authed_useres = get_users_by_auth(authorized=True)
 bot_reply = BotReply()
 bot_button = Bottons()
 geodf_memory = {}
@@ -40,7 +40,7 @@ APPROVE = 0
 def report(update, context):
     user_id = str(update.message.chat.id)
 
-    if user_id not in USERS_IDS:
+    if user_id not in authed_useres:
         bot.send_message(user_id, bot_reply.permission_deny())
         return ConversationHandler.END
 
@@ -126,7 +126,7 @@ def select_continue(update, context):
 def check(update, context):
     user_id = str(update.message.chat.id)
 
-    if user_id not in USERS_IDS:
+    if user_id not in authed_useres:
         bot.send_message(user_id, bot_reply.permission_deny())
         return ConversationHandler.END
 
@@ -186,7 +186,7 @@ def signup(update, context):
         bot.send_message(user_id, bot_reply.auth_already(status="admin"))
         return ConversationHandler.END
 
-    if user_id in USERS_IDS:
+    if user_id in authed_useres:
         bot.send_message(user_id, bot_reply.auth_already(status="user"))
         return ConversationHandler.END
 
@@ -263,7 +263,7 @@ def authorize(update, context):
 
 
 def approve(update, context):
-    global USERS_IDS
+    global authed_useres
     user_id = str(update.message.chat.id)
     approve_reply = str(update.message.text)
     applier_id = approve_reply.split(" ")[-1]
@@ -282,7 +282,7 @@ def approve(update, context):
     authorize_user(applier_id)
     bot.send_message(user_id, bot_reply.approved_applier())
     bot.send_message(applier_id, bot_reply.to_applier_passed())
-    USERS_IDS = get_users_by_auth(authorized=True)
+    authed_useres = get_users_by_auth(authorized=True)
 
     return ConversationHandler.END
 
