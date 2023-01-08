@@ -202,6 +202,7 @@ class BotReply:
         bio.name = "ponds.png"
         plt.savefig(bio)
         bio.seek(0)
+        plt.close()
         return bio
 
 
