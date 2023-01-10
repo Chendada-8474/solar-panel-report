@@ -18,7 +18,8 @@ MYSQL_IP = connection_info["mysql"]["ip"]
 MYSQL_DB_NAME = connection_info["mysql"]["database_name"]
 
 engine = create_engine(
-    "mysql+pymysql://root:%s@%s/%s" % (MYSQL_PW, MYSQL_IP, MYSQL_DB_NAME)
+    "mysql+pymysql://root:%s@%s/%s" % (MYSQL_PW, MYSQL_IP, MYSQL_DB_NAME),
+    pool_recycle=1,
 )
 
 db_session = scoped_session(sessionmaker(bind=engine))
