@@ -64,7 +64,7 @@ def split_pond_indexes(ponds_indexes: str) -> list:
 def send_message_skip_no_found_chat(user_id: list, announcer: str, announcement: str):
     for i in user_id:
         try:
-            bot.send_message(i, announcement + "\nby %s" % announcer)
+            bot.send_message(i, "%s\nby %s" % (announcement, announcer))
         except:
             print("chat %s not found when announcing" % user_id)
 
