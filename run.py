@@ -345,7 +345,7 @@ def confirm_announce(update, context):
 
     if callback == "send":
         bot.send_message(user_id, bot_reply.say(say_what="announce_sent"))
-        send_message_skip_no_found_chat(authed_useres, announcement)
+        send_message_skip_no_found_chat(authed_useres, announcer_name, announcement)
     elif callback == "cancel":
         bot.send_message(user_id, bot_reply.say(say_what="announce_cancel"))
 
