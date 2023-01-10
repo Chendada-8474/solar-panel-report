@@ -66,7 +66,7 @@ def send_message_skip_no_found_chat(user_id: list, announcement: str):
         try:
             bot.send_message(i, announcement)
         except:
-            print("chat %s not found when announcing")
+            print("chat %s not found when announcing" % user_id)
 
 
 if __name__ == "__main__":
