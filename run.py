@@ -199,7 +199,7 @@ def signup(update, context):
     last_name = update.message.chat.last_name
     unauth_user_ids = get_users_by_auth(authorized=False)
 
-    if not first_name and not last_name:
+    if not first_name or not last_name:
         bot.send_message(user_id, bot_reply.say(say_what="set_name_first"))
         return ConversationHandler.END
 

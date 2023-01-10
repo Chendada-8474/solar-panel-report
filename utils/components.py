@@ -91,6 +91,7 @@ class BotReply:
             "orgnization": "請問你的服務單位？",
             "signup": "確認送出申請？",
             "announce_content": "請輸入想公告的內容：",
+            "applier": "請選擇你要授權的使用者：",
             "send_announce": "確認要送出公告？\n系統會自動加上署名喔 ^_<",
         }
 
