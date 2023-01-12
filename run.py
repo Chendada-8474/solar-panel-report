@@ -275,7 +275,11 @@ def authorize(update, context):
         return ConversationHandler.END
 
     unauth_users = get_unauth_info()
-    bot.send_message(user_id, bot_reply.say(say_what="auth_cancel"))
+    bot.send_message(
+        user_id,
+        bot_reply.say(say_what="auth_cancel"),
+        reply_markup=ReplyKeyboardRemove(),
+    )
     bot.send_message(
         user_id,
         bot_reply.ask(question="applier"),
