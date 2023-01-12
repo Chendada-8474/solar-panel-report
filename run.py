@@ -309,7 +309,8 @@ def approve(update, context):
     authorize_user(applier_id)
     bot.send_message(user_id, bot_reply.say(say_what="approved_applier"))
     bot.send_message(applier_id, bot_reply.say(say_what="to_applier_passed"))
-    authed_useres = get_users_by_auth(authorized=True)
+    # authed_useres = get_users_by_auth(authorized=True)
+    authed_useres.add(applier_id)
 
     return ConversationHandler.END
 
