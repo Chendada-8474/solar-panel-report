@@ -289,8 +289,12 @@ def approve(update, context):
     user_id = str(update.message.chat.id)
     approve_reply = str(update.message.text)
 
-    if approve_reply == "cancel":
-        bot.send_message(user_id, bot_reply.say(say_what="cancel"))
+    if approve_reply.lower() == "cancel":
+        bot.send_message(
+            user_id,
+            bot_reply.say(say_what="cancel"),
+            reply_markup=ReplyKeyboardRemove(),
+        )
         return ConversationHandler.END
 
     applier_id = approve_reply.split(" ")[-1]
