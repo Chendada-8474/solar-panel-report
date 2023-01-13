@@ -1,6 +1,7 @@
 from pyproj import Transformer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 import geopandas as gpd
 import pandas as pd
 from datetime import datetime
@@ -19,12 +20,18 @@ MYSQL_DB_NAME = connection_info["mysql"]["database_name"]
 
 engine = create_engine(
     "mysql+pymysql://root:%s@%s/%s" % (MYSQL_PW, MYSQL_IP, MYSQL_DB_NAME),
-    pool_recycle=-1,
+    pool_recycle=3600,
     pool_pre_ping=True,
     isolation_level="AUTOCOMMIT",
 )
 
+Base = declarative_base()
+Base.metadata.reflect(engine)
 db_session = scoped_session(sessionmaker(bind=engine))
+
+
+class ReportLog(Base):
+    __table__ = Base.metadata.tables["report_log"]
 
 
 def _coord_trans(x, y, input_proj="4326", output_proj="3826"):
@@ -85,21 +92,36 @@ def update_panel_type(updates: dict):
         db_session.commit()
 
 
+# def insert_log(updates: dict, user_id):
+#     sql = """
+#     INSERT INTO report_log (fishpond_id, reporter, solar_panel_type_id, report_datetime) VALUE (%s, "%s", %s, "%s");
+#     """
+#     for fishpond_id, panel_type in updates.items():
+#         db_session.execute(
+#             sql
+#             % (
+#                 fishpond_id,
+#                 user_id,
+#                 panel_type,
+#                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+#             )
+#         )
+#         db_session.commit()
+
+
 def insert_log(updates: dict, user_id):
-    sql = """
-    INSERT INTO report_log (fishpond_id, reporter, solar_panel_type_id, report_datetime) VALUE (%s, "%s", %s, "%s");
-    """
+    logs = []
     for fishpond_id, panel_type in updates.items():
-        db_session.execute(
-            sql
-            % (
-                fishpond_id,
-                user_id,
-                panel_type,
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        logs.append(
+            ReportLog(
+                fishpond_id=fishpond_id,
+                reporter=user_id,
+                solar_panel_type_id=panel_type,
+                report_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             )
         )
-        db_session.commit()
+    db_session.add_all(logs)
+    db_session.commit()
 
 
 def insert_user(user_id: str, org=None, first_name=None, last_name=None):
