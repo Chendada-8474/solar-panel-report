@@ -92,23 +92,6 @@ def update_panel_type(updates: dict):
         db_session.commit()
 
 
-# def insert_log(updates: dict, user_id):
-#     sql = """
-#     INSERT INTO report_log (fishpond_id, reporter, solar_panel_type_id, report_datetime) VALUE (%s, "%s", %s, "%s");
-#     """
-#     for fishpond_id, panel_type in updates.items():
-#         db_session.execute(
-#             sql
-#             % (
-#                 fishpond_id,
-#                 user_id,
-#                 panel_type,
-#                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-#             )
-#         )
-#         db_session.commit()
-
-
 def insert_log(updates: dict, user_id):
     logs = []
     for fishpond_id, panel_type in updates.items():
