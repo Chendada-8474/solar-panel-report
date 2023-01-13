@@ -30,7 +30,7 @@ from utils.tools import (
     split_pond_indexes,
 )
 
-ADMINS = 0()
+ADMINS = 0
 SUPER_ADMIN = get_super_admin()
 TELEGRAM_TOKEN = connection_info["telegram"]["token"]
 bot = ExtBot(TELEGRAM_TOKEN)
