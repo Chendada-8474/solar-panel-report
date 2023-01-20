@@ -1,8 +1,7 @@
 from datetime import datetime
 from pyproj import Transformer
-from contextlib import contextmanager
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, Session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import geopandas as gpd
 import pandas as pd
