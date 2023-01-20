@@ -1,10 +1,11 @@
+from datetime import datetime
 from pyproj import Transformer
+from contextlib import contextmanager
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import geopandas as gpd
 import pandas as pd
-from datetime import datetime
 import yaml
 import os
 
@@ -20,9 +21,9 @@ MYSQL_DB_NAME = connection_info["mysql"]["database_name"]
 
 engine = create_engine(
     "mysql+pymysql://root:%s@%s/%s" % (MYSQL_PW, MYSQL_IP, MYSQL_DB_NAME),
+    isolation_level="AUTOCOMMIT",
     pool_recycle=3600,
     pool_pre_ping=True,
-    isolation_level="AUTOCOMMIT",
 )
 
 Base = declarative_base()
@@ -84,6 +85,7 @@ def get_ponds_nearby_as_geopandas(x: float, y: float, range=500):
 
 
 def update_panel_type(updates: dict):
+    db_session.rollback()
     sql_update = """
     UPDATE fishpond SET solar_panel_type = %s WHERE fishpond_id = %s;
     """
@@ -93,6 +95,7 @@ def update_panel_type(updates: dict):
 
 
 def insert_log(updates: dict, user_id):
+    db_session.rollback()
     logs = []
     for fishpond_id, panel_type in updates.items():
         logs.append(
@@ -108,6 +111,7 @@ def insert_log(updates: dict, user_id):
 
 
 def insert_user(user_id: str, org=None, first_name=None, last_name=None):
+    db_session.rollback()
     if not all([org, first_name, last_name]):
         raise "org, first_name and last_name are all requried"
     sql = """
@@ -126,6 +130,7 @@ def get_unauth_info():
 
 
 def authorize_user(applier_id):
+    db_session.rollback()
     sql = """
     UPDATE user SET authorized = 1 WHERE telegram_id = %s;
     """
