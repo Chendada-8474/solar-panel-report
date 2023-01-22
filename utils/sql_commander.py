@@ -84,17 +84,14 @@ def get_ponds_nearby_as_geopandas(x: float, y: float, range=500):
 
 
 def update_panel_type(updates: dict):
-    db_session.rollback()
     sql_update = """
     UPDATE fishpond SET solar_panel_type = %s WHERE fishpond_id = %s;
     """
     for fishpond_id, panel_type in updates.items():
-        db_session.execute(sql_update % (panel_type, fishpond_id))
-        db_session.commit()
+        _transect_control(sql_update % (panel_type, fishpond_id))
 
 
 def insert_log(updates: dict, user_id):
-    db_session.rollback()
     logs = []
     for fishpond_id, panel_type in updates.items():
         logs.append(
@@ -105,20 +102,25 @@ def insert_log(updates: dict, user_id):
                 report_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             )
         )
-    db_session.add_all(logs)
-    db_session.commit()
+
+    try:
+        db_session.add_all(logs)
+        db_session.commit()
+    except:
+        db_session.rollback()
+        raise
+    finally:
+        db_session.close()
 
 
 def insert_user(user_id: str, org=None, first_name=None, last_name=None):
-    db_session.rollback()
     if not all([org, first_name, last_name]):
         raise "org, first_name and last_name are all requried"
     sql = """
     INSERT INTO user (telegram_id, user_name, org) VALUE ('%s', '%s', '%s')
     """
     user_name = "%s %s" % (first_name, last_name)
-    db_session.execute(sql % (user_id, user_name, org))
-    db_session.commit()
+    _transect_control(sql % (user_id, user_name, org))
 
 
 def get_unauth_info():
@@ -129,12 +131,10 @@ def get_unauth_info():
 
 
 def authorize_user(applier_id):
-    db_session.rollback()
     sql = """
     UPDATE user SET authorized = 1 WHERE telegram_id = %s;
     """
-    db_session.execute(sql % applier_id)
-    db_session.commit()
+    _transect_control(sql % applier_id)
 
 
 def get_super_admin():
@@ -149,6 +149,17 @@ def get_user_name(user_id):
     SELECT user_name FROM user WHERE telegram_id = %s
     """
     return db_session.execute(sql % user_id).fetchone()[0]
+
+
+def _transect_control(sql: str):
+    try:
+        db_session.execute(sql)
+        db_session.commit()
+    except:
+        db_session.rollback()
+        raise
+    finally:
+        db_session.close()
 
 
 if __name__ == "__main__":
