@@ -22,8 +22,8 @@ engine = create_engine(
     "mysql+pymysql://root:%s@%s/%s" % (MYSQL_PW, MYSQL_IP, MYSQL_DB_NAME),
     pool_recycle=3600,
     pool_pre_ping=True,
+    execution_options={"isolation_level": "AUTOCOMMIT"},
 )
-engine = engine.execution_options(isolation_level="AUTOCOMMIT")
 
 Base = declarative_base()
 Base.metadata.reflect(engine)
