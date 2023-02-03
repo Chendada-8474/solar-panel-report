@@ -434,7 +434,7 @@ def main():
         )
     )
 
-    updater.start_polling(timeout=600)
+    updater.start_polling(timeout=60)
     updater.idle()
 
 
